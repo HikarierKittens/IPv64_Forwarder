@@ -1,0 +1,10 @@
+{
+    "forward_rules": [
+        {
+            "listen": "0.0.0.0:12345",
+            "name": "example_rule",
+            "protocol": "tcp",
+            "target": "127.0.0.1:54321"
+        }
+    ]
+}
