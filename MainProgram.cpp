@@ -1,12 +1,12 @@
 #include <winsock2.h>//winsock2
-#include <ws2tcpip.h>//Ì×½Ó×Ö
-#include <iostream>//Êä³ö
-#include <thread>//¶àÏß³Ì
-#include <vector>//¶ÓÁĞ
-#include <fstream>//ÎÄ¼ş¶ÁĞ´
-#include <nlohmann/json.hpp> //µÚÈı·½¿â
-#include <filesystem> //ÎÄ¼şÏµÍ³
-#include "conlog.h" // ÈÕÖ¾´¦Àí
+#include <ws2tcpip.h>//å¥—æ¥å­—
+#include <iostream>//è¾“å‡º
+#include <thread>//å¤šçº¿ç¨‹
+#include <vector>//é˜Ÿåˆ—
+#include <fstream>//æ–‡ä»¶è¯»å†™
+#include <nlohmann/json.hpp> //ç¬¬ä¸‰æ–¹åº“
+#include <filesystem> //æ–‡ä»¶ç³»ç»Ÿ
+#include "conlog.h" // æ—¥å¿—å¤„ç†
 
 using json = nlohmann::json;
 namespace fs = std::filesystem;
@@ -38,7 +38,7 @@ SOCKET CreateSocket(const addrinfo* info) {
         return INVALID_SOCKET;
     }
 
-    // ÉèÖÃ SO_REUSEADDR Ñ¡Ïî
+    // è®¾ç½® SO_REUSEADDR é€‰é¡¹
     int optval = 1;
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&optval, sizeof(optval)) == SOCKET_ERROR) {
         LogSocketError(WSAGetLastError());
@@ -115,14 +115,14 @@ void HandleUDP(SOCKET sock, const sockaddr_storage& targetAddr) {
 
         char clientIP[NI_MAXHOST];
         getnameinfo((sockaddr*)&clientAddr, addrLen, clientIP, sizeof(clientIP), nullptr, 0, NI_NUMERICHOST);
-        Log("½ÓÊÕµ½À´×Ô " + std::string(clientIP) + " µÄ UDP Á¬½Ó");
+        Log("æ¥æ”¶åˆ°æ¥è‡ª " + std::string(clientIP) + " çš„ UDP è¿æ¥");
 
         if (sendto(sock, buffer, len, 0, (sockaddr*)&targetAddr, sizeof(targetAddr)) == SOCKET_ERROR) {
             LogSocketError(WSAGetLastError());
             break;
         }
 
-        // ½ÓÊÕÄ¿±êµØÖ·µÄÏìÓ¦²¢×ª·¢»Ø¿Í»§¶Ë
+        // æ¥æ”¶ç›®æ ‡åœ°å€çš„å“åº”å¹¶è½¬å‘å›å®¢æˆ·ç«¯
         len = recvfrom(sock, buffer, sizeof(buffer), 0, nullptr, nullptr);
         if (len > 0) {
             if (sendto(sock, buffer, len, 0, (sockaddr*)&clientAddr, addrLen) == SOCKET_ERROR) {
@@ -137,7 +137,7 @@ void HandleUDP(SOCKET sock, const sockaddr_storage& targetAddr) {
 void StartForwarding(const ForwardRule& rule) {
     addrinfo hints{}, * listenInfo = nullptr, * targetInfo = nullptr;
 
-    // ½âÎö¼àÌıµØÖ·ºÍ¶Ë¿Ú
+    // è§£æç›‘å¬åœ°å€å’Œç«¯å£
     std::string listenAddress = rule.listen.substr(0, rule.listen.find(':'));
     std::string listenPort = rule.listen.substr(rule.listen.find(':') + 1);
 
@@ -147,11 +147,11 @@ void StartForwarding(const ForwardRule& rule) {
 
     Log("Resolving listen address: " + listenAddress + ":" + listenPort);
     if (getaddrinfo(listenAddress.c_str(), listenPort.c_str(), &hints, &listenInfo) != 0) {
-        Log("Failed to get address info for listen address: " + listenAddress + ":" + listenPort + ". Error: " + std::to_string(WSAGetLastError()));
+        LogSocketError(WSAGetLastError());
         return;
     }
 
-    // ½âÎöÄ¿±êµØÖ·ºÍ¶Ë¿Ú
+    // è§£æç›®æ ‡åœ°å€å’Œç«¯å£
     std::string targetAddress = rule.target.substr(0, rule.target.find(':'));
     std::string targetPort = rule.target.substr(rule.target.find(':') + 1);
 
@@ -160,7 +160,7 @@ void StartForwarding(const ForwardRule& rule) {
 
     Log("Resolving target address: " + targetAddress + ":" + targetPort);
     if (getaddrinfo(targetAddress.c_str(), targetPort.c_str(), &hints, &targetInfo) != 0) {
-        Log("Failed to get address info for target address: " + targetAddress + ":" + targetPort + ". Error: " + std::to_string(WSAGetLastError()));
+        LogSocketError(WSAGetLastError());
         freeaddrinfo(listenInfo);
         return;
     }
@@ -192,13 +192,13 @@ void StartForwarding(const ForwardRule& rule) {
                 }
                 char clientIP[NI_MAXHOST];
                 getnameinfo((sockaddr*)&clientAddr, addrLen, clientIP, sizeof(clientIP), nullptr, 0, NI_NUMERICHOST);
-                Log("½ÓÊÕµ½À´×Ô " + std::string(clientIP) + " µÄ TCP Á¬½Ó");
+                Log("æ¥æ”¶åˆ°æ¥è‡ª " + std::string(clientIP) + " çš„ TCP è¿æ¥");
 
                 if (targetInfo != nullptr && targetInfo->ai_addr != nullptr) {
                     std::thread(ForwardTCP, client, *(sockaddr_storage*)targetInfo->ai_addr).detach();
                 }
                 else {
-                    Log("targetInfo »ò targetInfo->ai_addr ÊÇ¿ÕÖ¸Õë");
+                    Log("targetInfo æˆ– targetInfo->ai_addr æ˜¯ç©ºæŒ‡é’ˆ");
                 }
             }
             closesocket(listenSocket);
@@ -212,15 +212,14 @@ void StartForwarding(const ForwardRule& rule) {
     freeaddrinfo(targetInfo);
 }
 
-
-void CreateDefaultConfig(const std::string& filePath) {
+void CreateDefaultConfig(const std::string& filePath) {  //åˆ›å»ºé»˜è®¤é…ç½®æ–‡ä»¶
     json defaultConfig = {
         {"forward_rules", {
             {
                 {"name", "example_rule"},
-                {"listen", "127.0.0.1:5555"}, // Ä¬ÈÏ¼àÌıµØÖ·ºÍ¶Ë¿Ú
-                {"target", "127.0.0.1:7777"}, // Ä¬ÈÏÄ¿±êµØÖ·ºÍ¶Ë¿Ú
-                {"protocol", "tcp"} // Ä¬ÈÏĞ­Òé
+                {"listen", "127.0.0.1:5555"}, // é»˜è®¤ç›‘å¬åœ°å€å’Œç«¯å£
+                {"target", "127.0.0.1:7777"}, // é»˜è®¤ç›®æ ‡åœ°å€å’Œç«¯å£
+                {"protocol", "tcp"} // é»˜è®¤åè®®
             }
         }}
     };
@@ -242,28 +241,34 @@ std::string GetExecutablePath() {
 }
 
 int main() {
+    system("chcp 65001");//è®¾ç½®UTF-8ç¼–ç 
+
+    // å¯åŠ¨æ—¥å¿—çº¿ç¨‹å¹¶åˆ†ç¦»
     std::thread logThread(LogWorker);
     logThread.detach();
 
-    // »ñÈ¡¿ÉÖ´ĞĞÎÄ¼şËùÔÚÄ¿Â¼
+    // è·å–å¯æ‰§è¡Œæ–‡ä»¶æ‰€åœ¨ç›®å½•
     std::string exePath = GetExecutablePath();
     std::cout << "Executable path: " << exePath << std::endl;
 
-    // ÉèÖÃµ±Ç°¹¤×÷Ä¿Â¼Îª¿ÉÖ´ĞĞÎÄ¼şËùÔÚÄ¿Â¼
+    // è®¾ç½®å½“å‰å·¥ä½œç›®å½•ä¸ºå¯æ‰§è¡Œæ–‡ä»¶æ‰€åœ¨ç›®å½•
     fs::current_path(exePath);
 
+    // åˆå§‹åŒ–Winsockåº“
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
         Log("WSAStartup failed.");
         return 1;
     }
 
+    // æ£€æŸ¥é…ç½®æ–‡ä»¶æ˜¯å¦å­˜åœ¨ï¼Œå¦‚æœä¸å­˜åœ¨åˆ™åˆ›å»ºé»˜è®¤é…ç½®æ–‡ä»¶
     std::string configFilePath = "config.json";
     if (!fs::exists(configFilePath)) {
         Log("Config file not found. Creating default config file.");
         CreateDefaultConfig(configFilePath);
     }
 
+    // æ‰“å¼€é…ç½®æ–‡ä»¶
     std::ifstream configFile(configFilePath);
     if (!configFile.is_open()) {
         Log("Failed to open config file.");
@@ -271,6 +276,7 @@ int main() {
         return 1;
     }
 
+    // è§£æé…ç½®æ–‡ä»¶å†…å®¹åˆ°jsonå¯¹è±¡
     json config;
     try {
         config = json::parse(configFile);
@@ -281,6 +287,7 @@ int main() {
         return 1;
     }
 
+    // ä»é…ç½®æ–‡ä»¶ä¸­è¯»å–è½¬å‘è§„åˆ™å¹¶å­˜å‚¨åˆ°è§„åˆ™åˆ—è¡¨ä¸­
     std::vector<ForwardRule> rules;
     for (auto& rule : config["forward_rules"]) {
         rules.push_back({
@@ -291,14 +298,16 @@ int main() {
             });
     }
 
+    // æ ¹æ®è§„åˆ™åˆ—è¡¨å¯åŠ¨ç«¯å£è½¬å‘
     for (auto& rule : rules) {
         StartForwarding(rule);
     }
 
+
     Log("Port forwarder running. Press Enter to exit...");
     std::cin.get();
 
+    // æ¸…ç†Winsockåº“
     WSACleanup();
     return 0;
 }
-

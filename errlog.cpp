@@ -2,8 +2,8 @@
 #include <winsock2.h>
 #include "conlog.h"
 #include <iostream>
-#include <thread> // °üº¬Ïß³Ì¿â
-#include <chrono> // °üº¬chrono¿â£¬ÓÃÓÚ´¦ÀíÊ±¼ä
+#include <thread> // åŒ…å«çº¿ç¨‹åº“
+#include <chrono> // åŒ…å«chronoåº“ï¼Œç”¨äºŽå¤„ç†æ—¶é—´
 
 
 
@@ -11,33 +11,33 @@
 void LogSocketError(int errorCode) {
     switch (errorCode) {
     case WSAECONNABORTED:
-        Log("Á¬½ÓÒÑ±»Ò»·½ÖÕÖ¹ (WSAECONNABORTED, 10053)");
+        Log("è¿žæŽ¥å·²è¢«ä¸€æ–¹ç»ˆæ­¢ (WSAECONNABORTED, 10053)");
         break;
     case WSAECONNRESET:
-        Log("Á¬½Ó±»¶Ô·½ÖØÖÃ (WSAECONNRESET, 10054)");
+        Log("è¿žæŽ¥è¢«å¯¹æ–¹é‡ç½® (WSAECONNRESET, 10054)");
         break;
     case WSAEHOSTUNREACH:
-        Log("Ä¿±êÖ÷»úÎÞ·¨·ÃÎÊ (WSAEHOSTUNREACH, 10065)");
+        Log("ç›®æ ‡ä¸»æœºæ— æ³•è®¿é—® (WSAEHOSTUNREACH, 10065)");
         break;
     case WSAENETDOWN:
-        Log("ÍøÂç×ÓÏµÍ³²»¿ÉÓÃ (WSAENETDOWN, 10050)");
+        Log("ç½‘ç»œå­ç³»ç»Ÿä¸å¯ç”¨ (WSAENETDOWN, 10050)");
         break;
     case WSAENETRESET:
-        Log("ÍøÂçÁ¬½ÓÒÑ±»ÖØÖÃ (WSAENETRESET, 10052)");
+        Log("ç½‘ç»œè¿žæŽ¥å·²è¢«é‡ç½® (WSAENETRESET, 10052)");
         break;
     case WSAENETUNREACH:
-        Log("ÍøÂç²»¿É´ï (WSAENETUNREACH, 10051)");
+        Log("ç½‘ç»œä¸å¯è¾¾ (WSAENETUNREACH, 10051)");
         break;
     case WSAETIMEDOUT:
-        Log("Á¬½Ó³¬Ê± (WSAETIMEDOUT, 10060)");
+        Log("è¿žæŽ¥è¶…æ—¶ (WSAETIMEDOUT, 10060)");
         break;
     case WSATYPE_NOT_FOUND:
-        Log("Î´ÖªµÄµØÖ·ÀàÐÍ (WSATYPE_NOT_FOUND, 10109)");
-        Log("Çë¼ì²éÅäÖÃÎÄ¼þÊÇ·ñÕýÈ·");
+        Log("æœªçŸ¥çš„åœ°å€ç±»åž‹ (WSATYPE_NOT_FOUND, 10109)");
+        Log("è¯·æ£€æŸ¥é…ç½®æ–‡ä»¶æ˜¯å¦æ­£ç¡®");
         break;
-        // ¿ÉÒÔÔÚÕâÀïÌí¼Ó¸ü¶àµÄ´íÎó´¦Àí
+        // å¯ä»¥åœ¨è¿™é‡Œæ·»åŠ æ›´å¤šçš„é”™è¯¯å¤„ç†
     default:
-        Log(("³öÏÖÎ´Öª´íÎó£¬´íÎó´úÂë: " + std::to_string(errorCode)).c_str());
+        Log(("å‡ºçŽ°æœªçŸ¥é”™è¯¯ï¼Œé”™è¯¯ä»£ç : " + std::to_string(errorCode)).c_str());
         break;
     }
 }
