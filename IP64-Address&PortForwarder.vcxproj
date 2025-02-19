@@ -133,6 +133,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="errlog.cpp" />
     <ClCompile Include="MainProgram.cpp" />
   </ItemGroup>
   <ItemGroup>

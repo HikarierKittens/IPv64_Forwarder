@@ -3,6 +3,11 @@
 #include <condition_variable>
 #include <memory>
 #include <stdexcept>
+#include <string>
+#include <winsock2.h>
+
+void Log(const std::string& message);
+void LogSocketError(int errorCode);
 
 template <typename T>
 class SemaphoreQueue {
@@ -42,24 +47,3 @@ private:
     std::queue<T> _queue;
     std::condition_variable _condition;
 };
-#ifndef CONLOG_H
-#define CONLOG_H
-
-#include <string>
-#include <winsock2.h>
-
-void Log(const std::string& message);
-
-void LogSocketError(int errorCode) {
-    switch (errorCode) {
-        case WSAECONNABORTED:
-            Log("连接已被一方终止 (WSAECONNABORTED, 10053)");
-            break;
-        // 可以在这里添加更多的错误处理
-        default:
-            Log("Socket error: " + std::to_string(errorCode));
-            break;
-    }
-}
-
-#endif // CONLOG_H
