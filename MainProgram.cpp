@@ -96,7 +96,7 @@ void ForwardTCP(SOCKET client, const sockaddr_storage& targetAddr) {
     std::thread(forward, server, client).detach();
 }
 
-void HandleUDP(SOCKET sock, const sockaddr_storage& targetAddr) {
+void HandleUDP(SOCKET sock, const sockaddr_storage& targetAddr) { //UDP端口转发
     char buffer[4096];
     sockaddr_storage clientAddr;
     int addrLen = sizeof(clientAddr);
@@ -134,7 +134,7 @@ void HandleUDP(SOCKET sock, const sockaddr_storage& targetAddr) {
     closesocket(sock);
 }
 
-void StartForwarding(const ForwardRule& rule) {
+void StartForwarding(const ForwardRule& rule) { //TCP端口转发
     addrinfo hints{}, * listenInfo = nullptr, * targetInfo = nullptr;
 
     // 解析监听地址和端口
