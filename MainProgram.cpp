@@ -249,7 +249,6 @@ int main() {
 
     // 获取可执行文件所在目录
     std::string exePath = GetExecutablePath();
-    std::cout << "Executable path: " << exePath << std::endl;
 
     // 设置当前工作目录为可执行文件所在目录
     fs::current_path(exePath);
