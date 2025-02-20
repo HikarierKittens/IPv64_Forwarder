@@ -3,6 +3,13 @@
 #include <condition_variable>
 #include <memory>
 #include <stdexcept>
+#include <string>
+#include <winsock2.h>
+
+void Log(const std::string& message); //æ§åˆ¶å°æ—¥å¿—è¾“å‡ºå‡½æ•°
+void LogSocketError(int errorCode);  //Socketé”™è¯¯æ—¥å¿—å‡½æ•°
+void SeparateIpAndPort_listen(const std::string& address, std::string& ip, std::string& port); //IPç«¯å£åˆ†ç¦»å‡½æ•°_ç›‘å¬
+void SeparateIpAndPort_target(const std::string& address, std::string& ip, std::string& port); //IPç«¯å£åˆ†ç¦»å‡½æ•°_ç›®æ ‡
 
 template <typename T>
 class SemaphoreQueue {
@@ -42,24 +49,3 @@ private:
     std::queue<T> _queue;
     std::condition_variable _condition;
 };
-#ifndef CONLOG_H
-#define CONLOG_H
-
-#include <string>
-#include <winsock2.h>
-
-void Log(const std::string& message);
-
-void LogSocketError(int errorCode) {
-    switch (errorCode) {
-        case WSAECONNABORTED:
-            Log("Á¬½ÓÒÑ±»Ò»·½ÖÕÖ¹ (WSAECONNABORTED, 10053)");
-            break;
-        // ¿ÉÒÔÔÚÕâÀïÌí¼Ó¸ü¶àµÄ´íÎó´¦Àí
-        default:
-            Log("Socket error: " + std::to_string(errorCode));
-            break;
-    }
-}
-
-#endif // CONLOG_H
