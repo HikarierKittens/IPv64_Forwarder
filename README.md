@@ -25,7 +25,7 @@ conlog.h文件基于C#重写为C++，并且加入额外功能
 - **未来计划**：  
   ✓ IPv6支持  
   ✓ 基本异常处理与调试日志  
-  ✗ IPv6与IPv4相互转换  
+  √ IPv6与IPv4相互转换  
   ✗ UDP双向转发支持  
   
 by Hikarier_Kittens
