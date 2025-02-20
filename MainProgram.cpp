@@ -34,7 +34,6 @@ void Log(const std::string& message) {
     logQueue.Enqueue(message);
 }
 
-
 SOCKET CreateSocket(const addrinfo* info) {
     SOCKET sock = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
     if (sock == INVALID_SOCKET) {
@@ -100,12 +99,16 @@ void ForwardTCP(SOCKET client, const sockaddr_storage& targetAddr) {
     std::thread(forward, server, client).detach();
 }
 
-void HandleUDP(SOCKET sock, const sockaddr_storage& targetAddr) { //UDP端口转发
+void HandleUDP(SOCKET sock, const sockaddr_storage& targetAddr) { //UDP转发
     char buffer[4096];
     sockaddr_storage clientAddr;
     int addrLen = sizeof(clientAddr);
 
     while (true) {
+        // 重置 addrLen
+        addrLen = sizeof(clientAddr);
+
+        // 接收来自客户端的数据
         int len = recvfrom(sock, buffer, sizeof(buffer), 0, (sockaddr*)&clientAddr, &addrLen);
         if (len <= 0) {
             if (len == 0) {
@@ -114,24 +117,29 @@ void HandleUDP(SOCKET sock, const sockaddr_storage& targetAddr) { //UDP端口转
             else {
                 LogSocketError(WSAGetLastError());
             }
-            break;
+            continue;
         }
 
         char clientIP[NI_MAXHOST];
         getnameinfo((sockaddr*)&clientAddr, addrLen, clientIP, sizeof(clientIP), nullptr, 0, NI_NUMERICHOST);
         Log("接收到来自 " + std::string(clientIP) + " 的 UDP 连接");
 
+        // 将数据转发到目标地址
         if (sendto(sock, buffer, len, 0, (sockaddr*)&targetAddr, sizeof(targetAddr)) == SOCKET_ERROR) {
             LogSocketError(WSAGetLastError());
-            break;
+            continue;
         }
 
+        // 重置 targetAddrLen
+        int targetAddrLen = sizeof(targetAddr);
+
         // 接收目标地址的响应并转发回客户端
-        len = recvfrom(sock, buffer, sizeof(buffer), 0, nullptr, nullptr);
+        sockaddr_storage targetResponseAddr;
+        len = recvfrom(sock, buffer, sizeof(buffer), 0, (sockaddr*)&targetResponseAddr, &targetAddrLen);
         if (len > 0) {
             if (sendto(sock, buffer, len, 0, (sockaddr*)&clientAddr, addrLen) == SOCKET_ERROR) {
                 LogSocketError(WSAGetLastError());
-                break;
+                continue;
             }
         }
     }
@@ -218,9 +226,6 @@ void StartForwarding(const ForwardRule& rule) { //启动转发步骤，开始解
     freeaddrinfo(targetInfo);
 }
 
-
-
-
 void CreateDefaultConfig(const std::string& filePath) {  //创建默认配置文件
     json defaultConfig = {
         {"forward_rules", {
@@ -231,7 +236,7 @@ void CreateDefaultConfig(const std::string& filePath) {  //创建默认配置文
                 {"protocol", "tcp"} // 协议类型
             },
             {
-                {"name", "example2_rule"}, 
+                {"name", "example2_rule"},
                 {"listen", "[::1]:19777"}, // 监听地址和端口_IPv6
                 {"target", "[::1]:19888"}, // 目标地址和端口_IPv6
                 {"protocol", "tcp"} // 协议类型
@@ -335,5 +340,3 @@ int main() {
     WSACleanup();
     return 0;
 }
-
-

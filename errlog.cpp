@@ -5,9 +5,6 @@
 #include <thread> // 包含线程库
 #include <chrono> // 包含chrono库，用于处理时间
 
-
-
-
 void LogSocketError(int errorCode) {
     switch (errorCode) {
     case WSAECONNABORTED:
@@ -36,7 +33,7 @@ void LogSocketError(int errorCode) {
         Log("请检查配置文件是否正确");
         break;
     case WSAECONNREFUSED:
-        Log("连接被拒绝 (WSAECONNREFUSED, 10061)"); 
+        Log("连接被拒绝 (WSAECONNREFUSED, 10061)");
         break;
         // 可以在这里添加更多的错误处理
     default:
