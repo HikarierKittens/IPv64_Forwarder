@@ -28,8 +28,12 @@ void LogWorker() {
 }
 
 void Log(const std::string& message) {
+    // 输出调试信息
+//    std::cerr << "Debug: Logging message: " << message << std::endl;
+
     logQueue.Enqueue(message);
 }
+
 
 SOCKET CreateSocket(const addrinfo* info) {
     SOCKET sock = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
@@ -134,32 +138,34 @@ void HandleUDP(SOCKET sock, const sockaddr_storage& targetAddr) { //UDP端口转
     closesocket(sock);
 }
 
-void StartForwarding(const ForwardRule& rule) { //TCP端口转发
-    addrinfo hints{}, * listenInfo = nullptr, * targetInfo = nullptr;
+void StartForwarding(const ForwardRule& rule) { //启动转发步骤，开始解析地址和端口，创建套接字，启动线程
+    addrinfo hints{}, * listenInfo = nullptr, * targetInfo = nullptr;//解析地址和端口的结构体，listen存储监听地址和端口，target存储目标地址和端口,初始化为nullptr
 
     // 解析监听地址和端口
-    std::string listenAddress = rule.listen.substr(0, rule.listen.find(':'));
-    std::string listenPort = rule.listen.substr(rule.listen.find(':') + 1);
+    std::string listen_Address, listen_Port;
+    SeparateIpAndPort_listen(rule.listen, listen_Address, listen_Port);
 
     ZeroMemory(&hints, sizeof(hints));
     hints.ai_flags = AI_PASSIVE;
+    hints.ai_family = AF_UNSPEC; // 支持 IPv4 和 IPv6
     hints.ai_socktype = (rule.protocol == "tcp") ? SOCK_STREAM : SOCK_DGRAM;
 
-    Log("Resolving listen address: " + listenAddress + ":" + listenPort);
-    if (getaddrinfo(listenAddress.c_str(), listenPort.c_str(), &hints, &listenInfo) != 0) {
+    Log("Resolving listen address: " + listen_Address + ":" + listen_Port);
+    if (getaddrinfo(listen_Address.c_str(), listen_Port.c_str(), &hints, &listenInfo) != 0) {
         LogSocketError(WSAGetLastError());
         return;
     }
 
     // 解析目标地址和端口
-    std::string targetAddress = rule.target.substr(0, rule.target.find(':'));
-    std::string targetPort = rule.target.substr(rule.target.find(':') + 1);
+    std::string target_Address, target_Port;
+    SeparateIpAndPort_target(rule.target, target_Address, target_Port);
 
     ZeroMemory(&hints, sizeof(hints));
+    hints.ai_family = AF_UNSPEC; // 支持 IPv4 和 IPv6
     hints.ai_socktype = (rule.protocol == "tcp") ? SOCK_STREAM : SOCK_DGRAM;
 
-    Log("Resolving target address: " + targetAddress + ":" + targetPort);
-    if (getaddrinfo(targetAddress.c_str(), targetPort.c_str(), &hints, &targetInfo) != 0) {
+    Log("Resolving target address: " + target_Address + ":" + target_Port);
+    if (getaddrinfo(target_Address.c_str(), target_Port.c_str(), &hints, &targetInfo) != 0) {
         LogSocketError(WSAGetLastError());
         freeaddrinfo(listenInfo);
         return;
@@ -212,19 +218,29 @@ void StartForwarding(const ForwardRule& rule) { //TCP端口转发
     freeaddrinfo(targetInfo);
 }
 
+
+
+
 void CreateDefaultConfig(const std::string& filePath) {  //创建默认配置文件
     json defaultConfig = {
         {"forward_rules", {
             {
-                {"name", "example_rule"},
-                {"listen", "127.0.0.1:5555"}, // 默认监听地址和端口
-                {"target", "127.0.0.1:7777"}, // 默认目标地址和端口
-                {"protocol", "tcp"} // 默认协议
-            }
+                {"name", "example1_rule"},
+                {"listen", "127.0.0.1:19555"}, // 监听地址和端口
+                {"target", "127.0.0.1:19666"}, // 目标地址和端口
+                {"protocol", "tcp"} // 协议类型
+            },
+            {
+                {"name", "example2_rule"}, 
+                {"listen", "[::1]:19777"}, // 监听地址和端口_IPv6
+                {"target", "[::1]:19888"}, // 目标地址和端口_IPv6
+                {"protocol", "tcp"} // 协议类型
+            },
         }}
     };
 
     std::ofstream configFile(filePath);
+
     if (!configFile.is_open()) {
         Log("Failed to create default config file.");
         return;
@@ -288,20 +304,29 @@ int main() {
 
     // 从配置文件中读取转发规则并存储到规则列表中
     std::vector<ForwardRule> rules;
-    for (auto& rule : config["forward_rules"]) {
-        rules.push_back({
-            rule["name"],
-            rule["listen"],
-            rule["target"],
-            rule["protocol"]
-            });
+    if (config.contains("forward_rules") && config["forward_rules"].is_array()) {
+        for (const auto& rule : config["forward_rules"]) {
+            if (rule.contains("name") && rule.contains("listen") && rule.contains("target") && rule.contains("protocol")) {
+                rules.push_back({
+                    rule["name"].get<std::string>(),
+                    rule["listen"].get<std::string>(),
+                    rule["target"].get<std::string>(),
+                    rule["protocol"].get<std::string>()
+                    });
+            }
+            else {
+                Log("Invalid rule format in config file--配置文件读取错误.");
+            }
+        }
+    }
+    else {
+        Log("No valid forward_rules found in config file.");
     }
 
     // 根据规则列表启动端口转发
-    for (auto& rule : rules) {
+    for (const auto& rule : rules) {
         StartForwarding(rule);
     }
-
 
     Log("Port forwarder running. Press Enter to exit...");
     std::cin.get();
@@ -310,3 +335,5 @@ int main() {
     WSACleanup();
     return 0;
 }
+
+

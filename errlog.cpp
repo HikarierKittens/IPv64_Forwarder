@@ -35,6 +35,9 @@ void LogSocketError(int errorCode) {
         Log("未知的地址类型 (WSATYPE_NOT_FOUND, 10109)");
         Log("请检查配置文件是否正确");
         break;
+    case WSAECONNREFUSED:
+        Log("连接被拒绝 (WSAECONNREFUSED, 10061)"); 
+        break;
         // 可以在这里添加更多的错误处理
     default:
         Log(("出现未知错误，错误代码: " + std::to_string(errorCode)).c_str());

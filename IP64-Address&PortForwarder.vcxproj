@@ -136,6 +136,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="errlog.cpp" />
+    <ClCompile Include="IP_Port.cpp" />
     <ClCompile Include="MainProgram.cpp" />
   </ItemGroup>
   <ItemGroup>

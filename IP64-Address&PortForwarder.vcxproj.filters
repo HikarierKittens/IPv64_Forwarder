@@ -21,6 +21,9 @@
     <ClCompile Include="errlog.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="IP_Port.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
