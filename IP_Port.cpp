@@ -2,6 +2,7 @@
 #include <iostream>
 #include "conlog.h"
 
+//检查IP地址是否符合条件
 void SeparateIpAndPort_listen(const std::string& address, std::string& listen_Address, std::string& listen_port) {
     // 从字符串末尾开始查找冒号，以找到地址和端口之间的分隔符
     size_t colonPos = address.rfind(':');

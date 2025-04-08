@@ -38,6 +38,9 @@ void LogSocketError(int errorCode) {
     case WSAECONNREFUSED:
         Log("连接被拒绝 (WSAECONNREFUSED, 10061)"); 
         break;
+    case WSAEAFNOSUPPORT:
+        Log("使用了与请求的协议不兼容的地址 (WSAEAFNOSUPPORT, 10047)");
+        break;
         // 可以在这里添加更多的错误处理
     default:
         Log(("出现未知错误，错误代码: " + std::to_string(errorCode)).c_str());
