@@ -1,4 +1,4 @@
-# IP64-Address&PortForwarder
+# IPv64-Forwarder
 一个简单的程序，它实现基于IPv4的TCP端口或者UDP端口转发（目前仅支持单向UDP）
 
 它属于https://github.com/HyperSharkawa/IPvX-PortForwarder  （基于C#）的简单重置版本，使用C++完成
