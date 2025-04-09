@@ -8,9 +8,8 @@
 
 void Log(const std::string& message); //控制台日志输出函数
 void LogSocketError(int errorCode);  //Socket错误日志函数
-void SeparateIpAndPort_listen(const std::string& address, std::string& ip, std::string& port); //IP端口分离函数_监听
-void SeparateIpAndPort_target(const std::string& address, std::string& ip, std::string& port); //IP端口分离函数_目标
-
+void SeparateIpAndPort_listen(const std::string& input, std::string& ip, std::string& port); //IP端口分离函数
+void SeparateIpAndPort_target(const std::string& input, std::string& ip, std::string& port); //IP端口分离函数
 template <typename T>
 class SemaphoreQueue {
 public:
