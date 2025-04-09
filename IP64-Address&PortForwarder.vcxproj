@@ -24,6 +24,7 @@
     <ProjectGuid>{aeee263f-56d9-4295-9e8c-cb56bb8fbedd}</ProjectGuid>
     <RootNamespace>IP64AddressPortForwarder</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>IP64_Forwarder</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
