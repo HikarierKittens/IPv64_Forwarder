@@ -38,7 +38,7 @@ void Log(const std::string& message) {
     logQueue.Enqueue(message);  // 将日志消息加入队列
 }
 
-
+// 创建套接字并进行一些初始化设置，如地址重用和绑定
 SOCKET CreateSocket(const addrinfo* info) {
     SOCKET sock = socket(info->ai_family, info->ai_socktype, info->ai_protocol);  // 创建套接字
     if (sock == INVALID_SOCKET) {
@@ -105,13 +105,14 @@ void ForwardTCP(SOCKET client, const sockaddr_storage& targetAddr) {
     std::thread(forward, server, client).detach();  // 启动一个线程从服务器转发数据到客户端
 }
 
-void HandleUDP(SOCKET sock, const sockaddr_storage& targetAddr) { //UDP端口转发
-    char buffer[4096];
-    sockaddr_storage clientAddr;
-    int addrLen = sizeof(clientAddr);
+// 处理UDP数据包的接收和转发
+void HandleUDP(SOCKET sock, const sockaddr_storage& targetAddr) {
+    char buffer[4096];  // 缓冲区用于存储接收的数据
+    sockaddr_storage clientAddr;  // 存储客户端地址信息
+    int addrLen = sizeof(clientAddr);  // 客户端地址信息的长度
 
     while (true) {
-        int len = recvfrom(sock, buffer, sizeof(buffer), 0, (sockaddr*)&clientAddr, &addrLen);
+        int len = recvfrom(sock, buffer, sizeof(buffer), 0, (sockaddr*)&clientAddr, &addrLen);  // 接收UDP数据包
         if (len <= 0) {
             if (len == 0) {
                 Log("Client disconnected.");  // 如果len为0，表示客户端已断开连接
@@ -119,26 +120,24 @@ void HandleUDP(SOCKET sock, const sockaddr_storage& targetAddr) { //UDP端口转
             else {
                 LogSocketError(WSAGetLastError());  // 记录接收数据失败的错误信息
             }
-            break;
+            break;  // 退出循环
         }
 
         char clientIP[NI_MAXHOST];  // 存储客户端IP地址的数组
         getnameinfo((sockaddr*)&clientAddr, addrLen, clientIP, sizeof(clientIP), nullptr, 0, NI_NUMERICHOST);  // 获取客户端IP地址
         Log("接收到来自 " + std::string(clientIP) + " 的 UDP 连接");  // 记录接收到来自客户端的UDP数据包
 
-        // 将数据转发到目标地址
         if (sendto(sock, buffer, len, 0, (sockaddr*)&targetAddr, sizeof(targetAddr)) == SOCKET_ERROR) {
-            LogSocketError(WSAGetLastError());
-            break;
+            LogSocketError(WSAGetLastError());  // 记录发送数据失败的错误信息
+            break;  // 退出循环
         }
 
-        // 接收目标地址的响应并转发回客户端
-        sockaddr_storage targetResponseAddr;
-        len = recvfrom(sock, buffer, sizeof(buffer), 0, (sockaddr*)&targetResponseAddr, &targetAddrLen);
+        // 接收并转发客户端的响应数据包
+        len = recvfrom(sock, buffer, sizeof(buffer), 0, nullptr, nullptr);
         if (len > 0) {
             if (sendto(sock, buffer, len, 0, (sockaddr*)&clientAddr, addrLen) == SOCKET_ERROR) {
-                LogSocketError(WSAGetLastError());
-                break;
+                LogSocketError(WSAGetLastError());  // 记录发送数据失败的错误信息
+                break;  // 退出循环
             }
         }
     }
@@ -233,10 +232,8 @@ void StartForwarding(const ForwardRule& rule) {
     freeaddrinfo(targetInfo);  // 释放目标地址信息
 }
 
-
-
-
-void CreateDefaultConfig(const std::string& filePath) {  //创建默认配置文件
+// 创建默认配置文件，包含两个示例转发规则
+void CreateDefaultConfig(const std::string& filePath) {
     json defaultConfig = {
         {"forward_rules", {
             {
@@ -246,10 +243,10 @@ void CreateDefaultConfig(const std::string& filePath) {  //创建默认配置文
                 {"protocol", "tcp"}  // 协议类型
             },
             {
-                {"name", "example2_rule"}, 
-                {"listen", "[::1]:19777"}, // 监听地址和端口_IPv6
-                {"target", "[::1]:19888"}, // 目标地址和端口_IPv6
-                {"protocol", "tcp"} // 协议类型
+                {"name", "example2_rule"},  // 规则名称
+                {"listen", "[::1]:19777"},  // 监听地址和端口（IPv6）
+                {"target", "[::1]:19888"},  // 目标地址和端口（IPv6）
+                {"protocol", "tcp"}  // 协议类型
             },
         }}
     };
